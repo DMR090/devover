@@ -1,0 +1,4 @@
+import {NextRequest} from 'next/server'
+import {listPublishedProjects} from '@/lib/projects'
+import {categories} from '@/lib/studio'
+export async function GET(req:NextRequest){const category=req.nextUrl.searchParams.get('category')??'All',page=Number(req.nextUrl.searchParams.get('page')??'1');if(!categories.includes(category)||!Number.isSafeInteger(page)||page<1||page>10000)return Response.json({message:'Invalid project filter or page.'},{status:400,headers:{'Cache-Control':'no-store'}});const result=await listPublishedProjects(category,page);if(result.error)return Response.json({message:result.error},{status:503,headers:{'Cache-Control':'no-store'}});const total=result.count??0;return Response.json({projects:result.data, page, pageSize:24, total, hasMore:page*24<total},{headers:{'Cache-Control':'public, s-maxage=60, stale-while-revalidate=300'}})}
